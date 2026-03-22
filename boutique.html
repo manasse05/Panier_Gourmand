@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Panier Gourmand — Boutique</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="boutique.css">
+</head>
+<body>
+
+<div class="strip" id="promoStrip">
+  🎉 Livraison gratuite pour toute commande > <span>15 000 FCFA</span> à Abidjan
+</div>
+
+<nav>
+  <a href="#" class="logo">Panier<b>●</b>Gourmand</a>
+  <ul class="nav-links">
+    <li><a href="#produits">Produits</a></li>
+    <li><a href="#commandes">Mes commandes</a></li>
+    <li><a href="#contact">Contact</a></li>
+  </ul>
+  <div class="nav-right">
+    <div class="search-box">
+      <span>🔍</span>
+      <input type="text" id="searchInput" placeholder="Rechercher...">
+    </div>
+    <button class="cart-btn" onclick="Boutique.openCart()">
+      🛒 Panier <span class="cart-count" id="cartCount">0</span>
+    </button>
+  </div>
+</nav>
+
+<section class="hero">
+  <div>
+    <div class="hero-label">🛍️ Boutique · Abidjan</div>
+    <h1 class="hero-title">
+      Tout pour votre<br>
+      <span class="o">cuisine</span> au<br>
+      <span class="g">meilleur prix</span>
+    </h1>
+    <p class="hero-desc">
+      Légumes, fruits, épices, viandes, céréales…
+      Produits frais livrés rapidement dans votre quartier.
+    </p>
+    <div class="hero-btns">
+      <button class="btn-g" onclick="document.getElementById('produits').scrollIntoView({behavior:'smooth'})">🛒 Commander</button>
+      <button class="btn-o" onclick="document.getElementById('contact').scrollIntoView({behavior:'smooth'})">📞 Appeler</button>
+    </div>
+    <div class="hero-stats">
+      <div><span class="stat-n" id="statProd">—</span><span class="stat-l">Produits</span></div>
+      <div><span class="stat-n" id="statCat">—</span><span class="stat-l">Catégories</span></div>
+      <div><span class="stat-n">100%</span><span class="stat-l">Frais</span></div>
+    </div>
+  </div>
+  <div class="hero-right" id="heroCats"></div>
+</section>
+
+<div class="filter-bar">
+  <strong>Filtrer :</strong>
+  <div class="filter-pills" id="filterPills"></div>
+  <select class="sort-sel" id="sortSel" onchange="Boutique.renderProducts()">
+    <option value="">Défaut</option>
+    <option value="asc">Prix ↑</option>
+    <option value="desc">Prix ↓</option>
+    <option value="name">Nom A→Z</option>
+  </select>
+</div>
+
+<section class="products" id="produits">
+  <div class="prod-header">
+    <h2>Nos produits</h2>
+    <span class="prod-count" id="prodCount"></span>
+  </div>
+  <div class="prod-grid" id="prodGrid"></div>
+</section>
+
+<section class="orders-sec" id="commandes">
+  <h2>📦 Suivre ma commande</h2>
+  <div class="orders-search-row">
+    <div class="order-search">
+      <span>🔍</span>
+      <input type="text" id="orderQ" placeholder="Votre numéro de téléphone...">
+    </div>
+    <button class="btn-g btn-sm" onclick="Boutique.searchOrders()">Chercher</button>
+  </div>
+  <div class="orders-grid" id="ordersGrid">
+    <p class="muted-hint">Entrez votre numéro pour voir vos commandes.</p>
+  </div>
+</section>
+
+<div class="contact-band" id="contact">
+  <div>
+    <h3 id="shopName">Panier Gourmand Abidjan</h3>
+    <p>Notre équipe disponible 6j/7 · 7h–20h</p>
+  </div>
+  <div class="cinfos">
+    <div class="cinfo">📍 <span id="shopAddr">Abidjan, Côte d'Ivoire</span></div>
+    <div class="cinfo">📞 <span id="shopPhone">+225 07 00 00 00 00</span></div>
+    <div class="cinfo">⏰ <span id="shopHours">Lun–Sam · 7h–20h</span></div>
+    <div class="cinfo">💳 MTN · Orange Money</div>
+  </div>
+</div>
+
+<footer>
+  <a href="#" class="logo">Panier<b>●</b>Gourmand</a>
+  <p>© 2025 FreshCorner Abidjan</p>
+  <p>Site réalisé par <a href="#">TwinDev Agency</a></p>
+</footer>
+
+<!-- Bouton admin discret -->
+<button class="admin-fab" onclick="Boutique.openAdminLogin()">⚙️ Gérer la boutique</button>
+
+<!-- Panier -->
+<div class="cart-overlay" id="cartOverlay" onclick="Boutique.closeCart()"></div>
+<div class="cart-panel" id="cartPanel">
+  <div class="cart-head">
+    <h3>🛒 Mon panier</h3>
+    <button class="cart-close" onclick="Boutique.closeCart()">✕</button>
+  </div>
+  <div class="cart-items" id="cartItems"></div>
+  <div class="cart-footer">
+    <div class="cart-total">
+      <span>Total</span>
+      <strong id="cartTotal">0 FCFA</strong>
+    </div>
+    <div id="cartStep1">
+      <button class="btn-order" onclick="Boutique.showOrderForm()">✍️ Passer commande</button>
+    </div>
+    <div id="cartStep2" style="display:none">
+      <div class="oform">
+        <input  type="text" id="oName"  placeholder="Votre nom complet *">
+        <input  type="tel"  id="oPhone" placeholder="Téléphone / WhatsApp *">
+        <input  type="text" id="oAddr"  placeholder="Adresse de livraison *">
+        <select id="oPay">
+          <option value="">Mode de paiement *</option>
+          <option>MTN Money</option>
+          <option>Orange Money</option>
+          <option>Espèces à la livraison</option>
+        </select>
+        <textarea id="oNote" placeholder="Note optionnelle..." rows="2"></textarea>
+        <button class="btn-order" onclick="Boutique.submitOrder()">✅ Confirmer</button>
+        <button class="btn-wa"    onclick="Boutique.orderWhatsApp()">📱 Via WhatsApp</button>
+        <button class="btn-back"  onclick="Boutique.hideOrderForm()">← Retour</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal login admin -->
+<div class="modal-bg" id="modalBg">
+  <div class="login-box">
+    <button class="login-box-close" onclick="Boutique.closeAdminLogin()">✕</button>
+    <h3>🔐 Espace propriétaire</h3>
+    <span class="sub">Connectez-vous pour gérer votre boutique</span>
+    <div class="lg">
+      <label>Identifiant</label>
+      <input type="text" id="alUser" placeholder="admin" autocomplete="username">
+    </div>
+    <div class="lg">
+      <label>Mot de passe</label>
+      <input type="password" id="alPass" placeholder="••••" autocomplete="current-password"
+             onkeydown="if(event.key==='Enter') Boutique.doAdminLogin()">
+    </div>
+    <button class="btn-login" onclick="Boutique.doAdminLogin()">🚀 Accéder à l'administration</button>
+    <div class="login-err" id="loginErr">❌ Identifiants incorrects — réessayez</div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="app.js"></script>
+<script>Boutique.init();</script>
+
+</body>
+</html>

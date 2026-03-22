@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Panier Gourmand — Administration</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="admin.css">
+</head>
+<body>
+
+<!-- ÉCRAN DE CONNEXION
+     display:none par défaut (défini dans admin.css)
+     Admin.checkAccess() en bas de page l'affiche si pas connecté -->
+<div id="loginScreen">
+  <div class="lbox">
+    <div class="lbox-logo">Fresh<b>●</b>Corner</div>
+    <p style="font-family:var(--fh);font-size:.85rem;color:var(--muted);margin-bottom:1.5rem">Espace Administration</p>
+    <div class="lhint">
+      <strong>🔐 Identifiants de démo</strong>
+      Login : <code>admin</code> &nbsp;·&nbsp; Mot de passe : <code>1234</code>
+    </div>
+    <div class="lg">
+      <label>Identifiant</label>
+      <input type="text" id="lu" placeholder="admin" autocomplete="username">
+    </div>
+    <div class="lg">
+      <label>Mot de passe</label>
+      <input type="password" id="lp" placeholder="••••" autocomplete="current-password"
+             onkeydown="if(event.key==='Enter') Admin.doLogin()">
+    </div>
+    <button class="btn-lg" onclick="Admin.doLogin()">🔓 Se connecter</button>
+    <div class="lerr" id="lerr">❌ Identifiants incorrects</div>
+  </div>
+</div>
+
+<!-- APPLICATION -->
+<div id="app">
+
+  <div class="sidebar">
+    <div class="sb-top">
+      <div class="sb-logo">Panier<b>●</b>Gourmand</div>
+      <div class="sb-role">👤 Administrateur</div>
+    </div>
+    <div class="sb-menu">
+      <div class="sb-sec">Principal</div>
+      <div class="sb-item active" onclick="Admin.goPage('dashboard',this)">
+        <span class="si">📊</span><span>Tableau de bord</span>
+      </div>
+      <div class="sb-item" onclick="Admin.goPage('produits',this)">
+        <span class="si">🛒</span><span>Produits</span>
+      </div>
+      <div class="sb-sec">Gestion</div>
+      <div class="sb-item" onclick="Admin.goPage('commandes',this)">
+        <span class="si">📦</span><span>Commandes</span>
+        <span class="sb-notif" id="pendingBadge" style="display:none">0</span>
+      </div>
+      <div class="sb-item" onclick="Admin.goPage('livraisons',this)">
+        <span class="si">🚴</span><span>Livraisons</span>
+      </div>
+      <div class="sb-sec">Configuration</div>
+      <div class="sb-item" onclick="Admin.goPage('categories',this)">
+        <span class="si">📂</span><span>Catégories</span>
+      </div>
+      <div class="sb-item" onclick="Admin.goPage('settings',this)">
+        <span class="si">⚙️</span><span>Paramètres</span>
+      </div>
+    </div>
+    <div class="sb-bottom">
+      <button class="btn-sb btn-boutique" onclick="window.open('boutique.html','_blank')">
+        <span>🌐</span><span>Voir la boutique</span>
+      </button>
+      <button class="btn-sb btn-logout" onclick="Admin.logout()">
+        <span>🚪</span><span>Déconnexion</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="main">
+    <div class="topbar">
+      <span class="page-title" id="pageTitle">Tableau de bord</span>
+      <div style="display:flex;align-items:center;gap:1rem">
+        <span id="topDate"></span>
+        <div class="admin-pill">⚡ Admin</div>
+      </div>
+    </div>
+    <div class="content" id="pageContent"></div>
+  </div>
+
+</div>
+
+<!-- MODAL : ajouter / modifier un produit -->
+<div class="modal-bg" id="modalBg">
+  <div class="modal">
+    <div class="modal-head">
+      <h3 id="modalTitle">Ajouter un produit</h3>
+      <button class="modal-close" onclick="Admin.closeModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="editId">
+      <div class="mrow">
+        <div class="mg"><label>Nom *</label><input type="text" id="fName" placeholder="Ex: Tomates cerises"></div>
+        <div class="mg"><label>Catégorie *</label><select id="fCat"><option value="">-- Choisir --</option></select></div>
+      </div>
+      <div class="mrow">
+        <div class="mg"><label>Prix (FCFA) *</label><input type="number" id="fPrice" placeholder="1500" min="0"></div>
+        <div class="mg"><label>Unité *</label><input type="text" id="fUnit" placeholder="kg, pce, L, 100g..."></div>
+      </div>
+      <div class="mg"><label>Description</label><textarea id="fDesc" placeholder="Courte description..."></textarea></div>
+      <div class="mg">
+        <label>Image du produit</label>
+        <div class="img-upload-zone" onclick="document.getElementById('imgFile').click()">
+          <input type="file" id="imgFile" accept="image/*" onchange="Admin.handleImgUpload(this)">
+          <div id="uploadPrompt">
+            <div class="upload-icon">📷</div>
+            <div class="upload-title">Cliquez pour uploader une image</div>
+            <div class="upload-hint">JPG, PNG, WEBP — max 2 Mo</div>
+          </div>
+          <img id="imgPreview" class="img-preview" alt="Aperçu">
+        </div>
+        <div class="img-url-row">
+          <input type="text" id="fImage" class="img-url-input" placeholder="Ou collez une URL d'image..."
+                 oninput="Admin.previewUrl(this.value)">
+          <button class="btn-clear-img" onclick="Admin._clearImg()">✕ Effacer</button>
+        </div>
+      </div>
+      <div class="mg">
+        <label>Icône (si pas d'image)</label>
+        <div class="icon-picker" id="iconPicker"></div>
+        <input type="text" id="fIcon" class="icon-input" placeholder="Ou tapez un emoji...">
+      </div>
+      <div class="mg">
+        <label>Couleur de fond</label>
+        <div class="color-picker" id="colorPicker"></div>
+        <input type="text" id="fBg" class="color-input" placeholder="#c8f5d6">
+      </div>
+      <div class="mrow">
+        <div class="mg">
+          <label>Badge</label>
+          <select id="fTag">
+            <option value="new">🆕 Nouveau</option>
+            <option value="promo">🏷️ Promo</option>
+            <option value="hot">⭐ Populaire</option>
+          </select>
+        </div>
+        <div class="mg">
+          <label>Disponibilité</label>
+          <select id="fStock">
+            <option value="true">✅ En stock</option>
+            <option value="false">❌ Rupture</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn-cancel" onclick="Admin.closeModal()">Annuler</button>
+      <button class="btn-save"   onclick="Admin.saveProduct()">💾 Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL : confirmer suppression -->
+<div class="confirm-bg" id="confirmBg">
+  <div class="confirm-box">
+    <div class="confirm-icon">🗑️</div>
+    <h4>Confirmer la suppression ?</h4>
+    <p>Cette action est irréversible. Le produit sera retiré de la boutique.</p>
+    <div class="confirm-btns">
+      <button class="btn-cancel" onclick="Admin.closeConfirm()">Annuler</button>
+      <button class="btn-del"    onclick="Admin.execDel()">Supprimer</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- app.js chargé en DERNIER, puis Admin.checkAccess() -->
+<script src="app.js"></script>
+<script>Admin.checkAccess();</script>
+
+</body>
+</html>
